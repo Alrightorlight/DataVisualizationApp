@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -214,11 +215,33 @@ namespace DataVisualizationApp
             {
                 SetStatus("正在打开导入对话框...");
 
-                // 这里将创建并显示数据导入窗体
-                MessageBox.Show("导入Excel功能将在下一步实现", "提示",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var importForm = new DataVisualizationApp.Forms.DataImportForm())
+                {
+                    if (importForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var importedData = importForm.ImportedData;
+                        if (importedData != null && importedData.Rows.Count > 0)
+                        {
+                            // 更新记录数显示
+                            UpdateRecordCount(importedData.Rows.Count);
 
-                SetStatus("就绪");
+                            // 启用数据相关按钮
+                            EnableDataButtons();
+
+                            // 更新欢迎界面
+                            UpdateWelcomePanel(importedData);
+
+                            SetStatus($"成功导入 {importedData.Rows.Count} 行数据");
+
+                            MessageBox.Show($"数据导入完成！\n行数: {importedData.Rows.Count}\n列数: {importedData.Columns.Count}",
+                            "导入成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    else
+                    {
+                        SetStatus("用户取消导入");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -332,6 +355,21 @@ namespace DataVisualizationApp
             visualizeButton.Enabled = false;
             viewDataMenuItem.Enabled = false;
             visualizeMenuItem.Enabled = false;
+        }
+
+        ///
+
+        /// 更新欢迎面板显示导入成功信息
+        ///
+
+        /// 导入的数据
+        private void UpdateWelcomePanel(DataTable data)
+        {
+            welcomeLabel.Text = $"数据导入成功！\n\n共导入 {data.Rows.Count:N0} 行数据，{data.Columns.Count} 列\n\n现在您可以查看数据或进行可视化分析";
+            welcomeLabel.ForeColor = Color.FromArgb(0, 150, 0); // 绿色表示成功
+
+            startImportButton.Text = "重新导入";
+            startImportButton.BackColor = Color.FromArgb(100, 100, 100);
         }
         #endregion
     }
