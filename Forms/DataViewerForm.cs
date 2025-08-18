@@ -72,6 +72,17 @@ namespace DataVisualizationApp.Forms
             if (datasetComboBox.SelectedItem is ComboBoxItem item)
             {
                 var table = await dataBaseService.GetDatasetTableAsync(item.Id);
+                // 处理空值问题
+                foreach (DataRow row in table.Rows)
+                {
+                    for (int i = 0; i < table.Columns.Count; i++)
+                    {
+                        if (row.IsNull(i))
+                        {
+                            row[i] = "N/A"; // 用N/A替换空值
+                        }
+                    }
+                }
                 grid.DataSource = table;
                 infoLabel.Text = $"已加载: 行 {table.Rows.Count}, 列 {table.Columns.Count}";
             }
@@ -86,5 +97,6 @@ namespace DataVisualizationApp.Forms
         }
     }
 }
+
 
 

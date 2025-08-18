@@ -7,57 +7,57 @@ namespace DataVisualizationApp
     {
         ///
 
-        /// Ó¦ÓÃ³ÌĞòµÄÖ÷Èë¿Úµã¡£
+        /// åº”ç”¨ç¨‹åºçš„ä¸»å…¥å£ç‚¹ã€‚
         ///
 
         [STAThread]
         static void Main()
         {
-            // ÆôÓÃ¸ßDPIÖ§³Ö
+            // å¯ç”¨é«˜DPIæ”¯æŒ
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
 
-            // ÆôÓÃÊÓ¾õÑùÊ½
+            // å¯ç”¨è§†è§‰æ ·å¼
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // ÉèÖÃÈ«¾ÖÒì³£´¦Àí
+            // è®¾ç½®å…¨å±€å¼‚å¸¸å¤„ç†
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += Application_ThreadException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             try
             {
-                // Æô¶¯Ö÷´°Ìå
+                // å¯åŠ¨ä¸»çª—ä½“
                 Application.Run(new MainForm());
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ó¦ÓÃ³ÌĞòÆô¶¯Ê§°Ü£º{ex.Message}", "ÖÂÃü´íÎó",
+                MessageBox.Show($"åº”ç”¨ç¨‹åºå¯åŠ¨å¤±è´¥ï¼š{ex.Message}", "è‡´å‘½é”™è¯¯",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         ///
 
-        /// ´¦ÀíUIÏß³ÌÒì³£
+        /// å¤„ç†UIçº¿ç¨‹å¼‚å¸¸
         ///
 
         private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-            MessageBox.Show($"Ó¦ÓÃ³ÌĞò·¢Éú´íÎó£º{e.Exception.Message}\n\nÏêÏ¸ĞÅÏ¢£º{e.Exception.StackTrace}",
-            "³ÌĞò´íÎó", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"åº”ç”¨ç¨‹åºå‘ç”Ÿé”™è¯¯ï¼š{e.Exception.Message}\n\nè¯¦ç»†ä¿¡æ¯ï¼š{e.Exception.StackTrace}",
+            "ç¨‹åºé”™è¯¯", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         ///
 
-        /// ´¦Àí·ÇUIÏß³ÌÒì³£
+        /// å¤„ç†éUIçº¿ç¨‹å¼‚å¸¸
         ///
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = e.ExceptionObject as Exception;
-            MessageBox.Show($"Ó¦ÓÃ³ÌĞò·¢ÉúÎ´´¦ÀíµÄ´íÎó£º{ex?.Message}\n\nÏêÏ¸ĞÅÏ¢£º{ex?.StackTrace}",
-            "ÑÏÖØ´íÎó", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"åº”ç”¨ç¨‹åºå‘ç”Ÿæœªå¤„ç†çš„é”™è¯¯ï¼š{ex?.Message}\n\nè¯¦ç»†ä¿¡æ¯ï¼š{ex?.StackTrace}",
+            "ä¸¥é‡é”™è¯¯", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }
