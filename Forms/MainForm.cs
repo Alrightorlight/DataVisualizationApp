@@ -256,10 +256,10 @@ namespace DataVisualizationApp
             try
             {
                 SetStatus("正在打开数据查看窗体...");
-
-                // 这里将创建并显示数据查看窗体
-                MessageBox.Show("数据查看功能将在后续步骤实现", "提示",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var viewer = new DataVisualizationApp.Forms.DataViewerForm())
+                {
+                    viewer.ShowDialog(this);
+                }
 
                 SetStatus("就绪");
             }
@@ -276,10 +276,10 @@ namespace DataVisualizationApp
             try
             {
                 SetStatus("正在打开可视化窗体...");
-
-                // 这里将创建并显示可视化窗体
-                MessageBox.Show("数据可视化功能将在后续步骤实现", "提示",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var viz = new DataVisualizationApp.Forms.VisualizationForm())
+                {
+                    viz.ShowDialog(this);
+                }
 
                 SetStatus("就绪");
             }

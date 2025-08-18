@@ -453,13 +453,11 @@ namespace DataVisualizationApp.Forms
 
                 ((IProgress<int>)progress).Report(60);
 
-                // 这里将添加数据库存储逻辑
-                await System.Threading.Tasks.Task.Run(() =>
-                {
-                    // TODO: 保存到数据库
-                    System.Threading.Thread.Sleep(1000); // 模拟保存过程
-                    ((IProgress<int>)progress).Report(100);
-                });
+                // 保存到数据库
+                var dbService = new DataVisualizationApp.Services.DataBaseService();
+                string datasetName = !string.IsNullOrWhiteSpace(selectedFilePath) ? Path.GetFileNameWithoutExtension(selectedFilePath) : null;
+                await dbService.SaveDatasetAsync(datasetName, fullData);
+                ((IProgress<int>)progress).Report(100);
 
                 MessageBox.Show($"数据导入成功！\n共导入 {fullData.Rows.Count} 行数据，{fullData.Columns.Count} 列",
                 "导入成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
