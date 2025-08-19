@@ -66,10 +66,69 @@ namespace DataVisualizationApp.Forms
             dataGridView.RowHeadersVisible = false;
             dataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView.MultiSelect = false;
+            dataGridView.AllowUserToOrderColumns = true;
+            dataGridView.ColumnHeaderMouseClick += DataGridView_ColumnHeaderMouseClick;
+            dataGridView.Sorted += DataGridView_Sorted;
 
             // 添加到面板
             mainPanel.Controls.Add(dataGridView);
             this.Controls.Add(mainPanel);
+        }
+        #endregion
+
+        #region 排序功能
+        private string _sortColumn = null;
+        private SortOrder _sortOrder = SortOrder.None;
+
+        private void DataGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.ColumnIndex >= 0)
+            {
+                DataGridViewColumn column = dataGridView.Columns[e.ColumnIndex];
+
+                // 如果点击的是当前排序列，则切换排序方向
+                if (column.Name == _sortColumn)
+                {
+                    _sortOrder = _sortOrder == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
+                }
+                else
+                {
+                    // 否则，设置为新的排序列，默认升序
+                    _sortColumn = column.Name;
+                    _sortOrder = SortOrder.Ascending;
+                }
+
+                // 对整个数据源进行排序
+                SortDataSource();
+            }
+        }
+
+        private void DataGridView_Sorted(object sender, EventArgs e)
+        {
+            // 清除所有列的排序图标
+            foreach (DataGridViewColumn column in dataGridView.Columns)
+            {
+                column.HeaderCell.SortGlyphDirection = SortOrder.None;
+            }
+
+            // 设置当前排序列的排序图标
+            if (!string.IsNullOrEmpty(_sortColumn) && dataGridView.Columns.Contains(_sortColumn))
+            {
+                dataGridView.Columns[_sortColumn].HeaderCell.SortGlyphDirection = _sortOrder;
+            }
+        }
+
+        private void SortDataSource()
+        {
+            if (_dataSource == null || _dataSource.Rows.Count == 0 || string.IsNullOrEmpty(_sortColumn))
+                return;
+
+            // 对整个数据源进行排序
+            _dataSource.DefaultView.Sort = $"{_sortColumn} {( _sortOrder == SortOrder.Ascending ? "ASC" : "DESC" )}";
+            _dataSource = _dataSource.DefaultView.ToTable();
+
+            // 重新加载当前页数据
+            LoadData();
         }
         #endregion
 
