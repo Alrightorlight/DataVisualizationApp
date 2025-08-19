@@ -1,4 +1,4 @@
-﻿using OfficeOpenXml;
+using OfficeOpenXml;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -190,23 +190,61 @@ namespace DataVisualizationApp.Services
         private List<string> ProcessHeaders(ExcelWorksheet worksheet, int startCol, int endCol, int headerRowCount)
         {
             var headers = new List<string>();
+            // 跟踪合并单元格，避免重复处理
+            var mergedCells = new HashSet<string>();
 
             for (int col = startCol; col <= endCol; col++)
             {
                 var headerParts = new List<string>();
+                var columnHasValue = false;
 
                 for (int row = 1; row <= headerRowCount; row++)
                 {
+                    // 检查单元格是否属于已处理的合并单元格
+                    string cellKey = $"{row}_{col}";
+                    if (mergedCells.Contains(cellKey))
+                        continue;
+
+                    var cell = worksheet.Cells[row, col];
                     var cellValue = GetCellValue(worksheet, row, col);
-                    if (!string.IsNullOrWhiteSpace(cellValue?.ToString()))
+                    string? valueStr = cellValue?.ToString()?.Trim();
+
+                    if (!string.IsNullOrWhiteSpace(valueStr))
                     {
-                        headerParts.Add(cellValue?.ToString()?.Trim() ?? string.Empty);
+                        headerParts.Add(valueStr);
+                        columnHasValue = true;
+                    }
+
+                    // 如果是合并单元格，标记所有合并的单元格
+                    if (cell.Merge)
+                    {
+                        foreach (var mergedCell in worksheet.MergedCells)
+                        {
+                            var range = worksheet.Cells[mergedCell];
+                            if (range.Start.Row <= row && range.End.Row >= row &&
+                                range.Start.Column <= col && range.End.Column >= col)
+                            {
+                                for (int r = range.Start.Row; r <= range.End.Row; r++)
+                                {
+                                    for (int c = range.Start.Column; c <= range.End.Column; c++)
+                                    {
+                                        mergedCells.Add($"{r}_{c}");
+                                    }
+                                }
+                                break;
+                            }
+                        }
                     }
                 }
 
-                // 合并多行表头
-                var headerName = string.Join("_", headerParts.Where(h => !string.IsNullOrEmpty(h)));
-                if (string.IsNullOrEmpty(headerName))
+                // 生成列名
+                string headerName;
+                if (columnHasValue)
+                {
+                    // 合并多行表头，仅使用非重复的部分
+                    headerName = string.Join("_", headerParts.Distinct());
+                }
+                else
                 {
                     headerName = $"Column{col}";
                 }
