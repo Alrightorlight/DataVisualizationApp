@@ -69,7 +69,7 @@ namespace DataVisualizationApp.Services
         /// 工作表名称
         /// 预览行数
         /// 预览数据表
-        public DataTable PreviewExcelData(string filePath, string worksheetName = null, int previewRows = 10)
+        public DataTable PreviewExcelData(string filePath, string? worksheetName = null, int previewRows = 10)
         {
             var fileInfo = new FileInfo(filePath);
             using (var package = new ExcelPackage(fileInfo))
@@ -95,7 +95,7 @@ namespace DataVisualizationApp.Services
         /// 是否包含表头
         /// 表头行数
         /// 完整数据表
-        public DataTable ReadExcelData(string filePath, string worksheetName = null,
+        public DataTable ReadExcelData(string filePath, string? worksheetName = null,
         bool hasHeaders = true, int headerRowCount = 1)
         {
             var fileInfo = new FileInfo(filePath);
@@ -200,7 +200,7 @@ namespace DataVisualizationApp.Services
                     var cellValue = GetCellValue(worksheet, row, col);
                     if (!string.IsNullOrWhiteSpace(cellValue?.ToString()))
                     {
-                        headerParts.Add(cellValue.ToString().Trim());
+                        headerParts.Add(cellValue?.ToString()?.Trim() ?? string.Empty);
                     }
                 }
 
@@ -235,7 +235,7 @@ namespace DataVisualizationApp.Services
         /// 行号
         /// 列号
         /// 单元格值
-        private object GetCellValue(ExcelWorksheet worksheet, int row, int col)
+        private object? GetCellValue(ExcelWorksheet worksheet, int row, int col)
         {
             try
             {
@@ -341,8 +341,8 @@ namespace DataVisualizationApp.Services
 
     public class ExcelFileInfo
     {
-        public string FilePath { get; set; }
-        public string FileName { get; set; }
+        public string? FilePath { get; set; }
+        public string? FileName { get; set; }
         public long FileSize { get; set; }
         public DateTime LastModified { get; set; }
         public List<string> WorksheetNames { get; set; } = new List<string>();

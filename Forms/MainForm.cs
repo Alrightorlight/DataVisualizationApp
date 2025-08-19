@@ -8,7 +8,7 @@ namespace DataVisualizationApp
     public partial class MainForm : Form
     {
         // 存储导入的数据
-        private DataTable _importedData;
+        private DataTable _importedData = new DataTable();
 
         public MainForm()
         {
@@ -40,15 +40,24 @@ namespace DataVisualizationApp
         }
 
         #region 菜单栏
-        private MenuStrip menuStrip;
-        private ToolStripMenuItem fileMenuItem;
-        private ToolStripMenuItem importMenuItem;
-        private ToolStripMenuItem exitMenuItem;
-        private ToolStripMenuItem dataMenuItem;
-        private ToolStripMenuItem viewDataMenuItem;
-        private ToolStripMenuItem visualizeMenuItem;
-        private ToolStripMenuItem helpMenuItem;
-        private ToolStripMenuItem aboutMenuItem;
+        // 添加null!初始化以解决CS8618警告
+private MenuStrip menuStrip = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem fileMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem importMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem exitMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem dataMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem viewDataMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem visualizeMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem helpMenuItem = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripMenuItem aboutMenuItem = null!;
 
         private void CreateMenuStrip()
         {
@@ -90,10 +99,14 @@ namespace DataVisualizationApp
         #endregion
 
         #region 工具栏
-        private ToolStrip toolStrip;
-        private ToolStripButton importButton;
-        private ToolStripButton viewDataButton;
-        private ToolStripButton visualizeButton;
+        // 添加null!初始化以解决CS8618警告
+private ToolStrip toolStrip = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripButton importButton = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripButton viewDataButton = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripButton visualizeButton = null!;
 
         private void CreateToolStrip()
         {
@@ -127,9 +140,12 @@ namespace DataVisualizationApp
         #endregion
 
         #region 状态栏
-        private StatusStrip statusStrip;
-        private ToolStripStatusLabel statusLabel;
-        private ToolStripStatusLabel recordCountLabel;
+        // 添加null!初始化以解决CS8618警告
+private StatusStrip statusStrip = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripStatusLabel statusLabel = null!;
+        // 添加null!初始化以解决CS8618警告
+private ToolStripStatusLabel recordCountLabel = null!;
 
         private void CreateStatusStrip()
         {
@@ -150,9 +166,12 @@ namespace DataVisualizationApp
         #endregion
 
         #region 主面板
-        private Panel mainPanel;
-        private Label welcomeLabel;
-        private Button startImportButton;
+        // 添加null!初始化以解决CS8618警告
+private Panel mainPanel = null!;
+        // 添加null!初始化以解决CS8618警告
+private Label welcomeLabel = null!;
+        // 添加null!初始化以解决CS8618警告
+private Button startImportButton = null!;
 
         private void CreateMainPanel()
         {
@@ -197,7 +216,8 @@ namespace DataVisualizationApp
             this.Controls.Add(mainPanel);
         }
 
-        private void MainPanel_Resize(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void MainPanel_Resize(object? sender, EventArgs e)
         {
             // 重新居中控件
             welcomeLabel.Location = new Point(
@@ -212,7 +232,8 @@ namespace DataVisualizationApp
         #endregion
 
         #region 事件处理
-        private void ImportExcel_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void ImportExcel_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -222,8 +243,9 @@ namespace DataVisualizationApp
                 {
                     if (importForm.ShowDialog(this) == DialogResult.OK)
                     {
-                        var importedData = importForm.ImportedData;
-                        if (importedData != null && importedData.Rows.Count > 0)
+                        var importedData = importForm.ImportedData!;
+                        // importedData已经通过!运算符确保非空，无需再次检查
+if (importedData.Rows.Count > 0)
                         {
                             // 保存导入的数据
                             _importedData = importedData;
@@ -257,7 +279,8 @@ namespace DataVisualizationApp
             }
         }
 
-        private void ViewData_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void ViewData_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -279,7 +302,8 @@ namespace DataVisualizationApp
             }
         }
 
-        private void Visualize_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void Visualize_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -299,13 +323,15 @@ namespace DataVisualizationApp
             }
         }
 
-        private void About_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void About_Click(object? sender, EventArgs e)
         {
             MessageBox.Show("数据可视化分析系统 v1.0\n\n基于.NET 8.0和ScottPlot开发\n支持Excel数据导入和可视化分析",
             "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void Exit_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求（CS8622警告）
+private void Exit_Click(object? sender, EventArgs e)
         {
             if (MessageBox.Show("确定要退出程序吗？", "确认",
             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)

@@ -12,13 +12,14 @@ namespace DataVisualizationApp.Forms
     public partial class DataImportForm : Form
     {
         private ExcelService excelService;
-        private DataTable previewData;
-        private string selectedFilePath;
+        private DataTable previewData = null!;
+        private string selectedFilePath = null!;
 
         public DataImportForm()
         {
             InitializeComponent();
             excelService = new ExcelService();
+            selectedFilePath = string.Empty;
             this.Text = "Excel数据导入";
             this.Size = new Size(1000, 700);
             this.StartPosition = FormStartPosition.CenterParent;
@@ -38,36 +39,36 @@ namespace DataVisualizationApp.Forms
         }
 
         #region 界面控件
-        private TableLayoutPanel mainLayout;
+        private TableLayoutPanel mainLayout = null!;
 
         // 文件选择区域
-        private GroupBox fileGroupBox;
-        private TextBox filePathTextBox;
-        private Button browseButton;
-        private Label fileInfoLabel;
+        private GroupBox fileGroupBox = null!;
+        private TextBox filePathTextBox = null!;
+        private Button browseButton = null!;
+        private Label fileInfoLabel = null!;
 
         // 工作表选择
-        private Label worksheetLabel;
-        private ComboBox worksheetComboBox;
+        private Label worksheetLabel = null!;
+        private ComboBox worksheetComboBox = null!;
 
         // 预览区域
-        private GroupBox previewGroupBox;
-        private DataGridView previewDataGridView;
-        private Label previewInfoLabel;
+        private GroupBox previewGroupBox = null!;
+        private DataGridView previewDataGridView = null!;
+        private Label previewInfoLabel = null!;
 
         // 设置区域
-        private GroupBox settingsGroupBox;
-        private CheckBox hasHeadersCheckBox;
-        private Label headerRowsLabel;
-        private NumericUpDown headerRowsNumericUpDown;
-        private Button detectTypesButton;
-        private ListView columnTypesListView;
+        private GroupBox settingsGroupBox = null!;
+        private CheckBox hasHeadersCheckBox = null!;
+        private Label headerRowsLabel = null!;
+        private NumericUpDown headerRowsNumericUpDown = null!;
+        private Button detectTypesButton = null!;
+        private ListView columnTypesListView = null!;
 
         // 按钮区域
-        private Panel buttonPanel;
-        private Button importButton;
-        private Button cancelButton;
-        private ProgressBar progressBar;
+        private Panel buttonPanel = null!;
+        private Button importButton = null!;
+        private Button cancelButton = null!;
+        private ProgressBar progressBar = null!;
         #endregion
 
         #region 创建界面
@@ -294,6 +295,7 @@ namespace DataVisualizationApp.Forms
             buttonPanel.Controls.Add(progressBar);
 
             buttonPanel.Resize += (s, e) => {
+                if (s is null) return;
                 importButton.Location = new Point(buttonPanel.Width - 220, 15);
                 cancelButton.Location = new Point(buttonPanel.Width - 110, 15);
             };
@@ -301,7 +303,7 @@ namespace DataVisualizationApp.Forms
         #endregion
 
         #region 事件处理
-        private void BrowseButton_Click(object sender, EventArgs e)
+        private void BrowseButton_Click(object? sender, EventArgs e)
         {
             using (var openFileDialog = new OpenFileDialog())
             {
@@ -350,7 +352,7 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void WorksheetComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void WorksheetComboBox_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (worksheetComboBox.SelectedIndex >= 0)
             {
@@ -364,7 +366,7 @@ namespace DataVisualizationApp.Forms
             {
                 if (string.IsNullOrEmpty(selectedFilePath)) return;
 
-                string worksheetName = worksheetComboBox.SelectedItem?.ToString();
+                string worksheetName = worksheetComboBox.SelectedItem?.ToString() ?? string.Empty;
                 previewData = excelService.PreviewExcelData(selectedFilePath, worksheetName, 20);
 
                 previewDataGridView.DataSource = previewData;
@@ -382,26 +384,26 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void HasHeadersCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void HasHeadersCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
             headerRowsLabel.Enabled = hasHeadersCheckBox.Checked;
             headerRowsNumericUpDown.Enabled = hasHeadersCheckBox.Checked;
             LoadPreviewData();
         }
 
-        private void HeaderRowsNumericUpDown_ValueChanged(object sender, EventArgs e)
+        private void HeaderRowsNumericUpDown_ValueChanged(object? sender, EventArgs e)
         {
             LoadPreviewData();
         }
 
-        private void DetectTypesButton_Click(object sender, EventArgs e)
+        private void DetectTypesButton_Click(object? sender, EventArgs e)
         {
             DetectColumnTypes();
         }
 
         private void DetectColumnTypes()
         {
-            if (previewData == null) return;
+            if (previewData == null || excelService == null) return;
 
             try
             {
@@ -422,7 +424,7 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private async void ImportButton_Click(object sender, EventArgs e)
+        private async void ImportButton_Click(object? sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(selectedFilePath) || previewData == null)
             {
@@ -442,7 +444,7 @@ namespace DataVisualizationApp.Forms
                 // 异步导入数据
                 var progress = new Progress<int>(value => progressBar.Value = value);
 
-                string worksheetName = worksheetComboBox.SelectedItem?.ToString();
+                string worksheetName = worksheetComboBox.SelectedItem?.ToString() ?? string.Empty;
                 bool hasHeaders = hasHeadersCheckBox.Checked;
                 int headerRows = (int)headerRowsNumericUpDown.Value;
 
@@ -484,7 +486,7 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void CancelButton_Click(object sender, EventArgs e)
+        private void CancelButton_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
@@ -521,7 +523,7 @@ namespace DataVisualizationApp.Forms
         /// 导入的数据
         ///
 
-        public DataTable ImportedData { get; private set; }
+        public DataTable ImportedData { get; private set; } = null!;
         #endregion
     }
 }

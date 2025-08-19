@@ -8,7 +8,7 @@ namespace DataVisualizationApp.Forms
     public partial class DataViewForm : Form
     {
         // 数据源
-        private DataTable _dataSource;
+        private DataTable _dataSource = null!;
         // 当前页码
         private int _currentPage = 1;
         // 每页记录数
@@ -43,9 +43,9 @@ namespace DataVisualizationApp.Forms
         }
 
         #region 主面板
-        private Panel mainPanel;
-        private DataGridView dataGridView;
-        private Label pageInfoLabel;
+        private Panel mainPanel = null!;
+        private DataGridView dataGridView = null!;
+        private Label pageInfoLabel = null!;
 
         private void CreateMainPanel()
         {
@@ -77,10 +77,11 @@ namespace DataVisualizationApp.Forms
         #endregion
 
         #region 排序功能
-        private string _sortColumn = null;
+        private string? _sortColumn = null;
         private SortOrder _sortOrder = SortOrder.None;
 
-        private void DataGridView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void DataGridView_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
         {
             if (e.ColumnIndex >= 0)
             {
@@ -103,7 +104,8 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void DataGridView_Sorted(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void DataGridView_Sorted(object? sender, EventArgs e)
         {
             // 清除所有列的排序图标
             foreach (DataGridViewColumn column in dataGridView.Columns)
@@ -114,7 +116,8 @@ namespace DataVisualizationApp.Forms
             // 设置当前排序列的排序图标
             if (!string.IsNullOrEmpty(_sortColumn) && dataGridView.Columns.Contains(_sortColumn))
             {
-                dataGridView.Columns[_sortColumn].HeaderCell.SortGlyphDirection = _sortOrder;
+                // 使用!运算符表示_sortColumn此时不为null
+                dataGridView.Columns[_sortColumn!].HeaderCell.SortGlyphDirection = _sortOrder;
             }
         }
 
@@ -124,7 +127,8 @@ namespace DataVisualizationApp.Forms
                 return;
 
             // 对整个数据源进行排序
-            _dataSource.DefaultView.Sort = $"{_sortColumn} {( _sortOrder == SortOrder.Ascending ? "ASC" : "DESC" )}";
+            // 使用!运算符表示_sortColumn此时不为null
+            _dataSource.DefaultView.Sort = $"{_sortColumn!} {( _sortOrder == SortOrder.Ascending ? "ASC" : "DESC" )}";
             _dataSource = _dataSource.DefaultView.ToTable();
 
             // 重新加载当前页数据
@@ -133,16 +137,16 @@ namespace DataVisualizationApp.Forms
         #endregion
 
         #region 分页控件
-        private Panel paginationPanel;
-        private Button firstPageButton;
-        private Button prevPageButton;
-        private Button nextPageButton;
-        private Button lastPageButton;
-        private NumericUpDown pageNumberInput;
-        private Label pageSeparatorLabel;
-        private Label totalPagesLabel;
-        private ComboBox pageSizeComboBox;
-        private Label pageSizeLabel;
+        private Panel paginationPanel = null!;
+        private Button firstPageButton = null!;
+        private Button prevPageButton = null!;
+        private Button nextPageButton = null!;
+        private Button lastPageButton = null!;
+        private NumericUpDown pageNumberInput = null!;
+        private Label pageSeparatorLabel = null!;
+        private Label totalPagesLabel = null!;
+        private ComboBox pageSizeComboBox = null!;
+        private Label pageSizeLabel = null!;
 
         private void CreatePaginationControls()
         {
@@ -277,7 +281,8 @@ namespace DataVisualizationApp.Forms
             lastPageButton.Enabled = _currentPage < _totalPages;
         }
 
-        private void FirstPageButton_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void FirstPageButton_Click(object? sender, EventArgs e)
         {
             if (_currentPage != 1)
             {
@@ -287,7 +292,8 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void PrevPageButton_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void PrevPageButton_Click(object? sender, EventArgs e)
         {
             if (_currentPage > 1)
             {
@@ -297,7 +303,8 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void NextPageButton_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void NextPageButton_Click(object? sender, EventArgs e)
         {
             if (_currentPage < _totalPages)
             {
@@ -307,7 +314,8 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void LastPageButton_Click(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void LastPageButton_Click(object? sender, EventArgs e)
         {
             if (_currentPage != _totalPages)
             {
@@ -317,7 +325,8 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void PageNumberInput_ValueChanged(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void PageNumberInput_ValueChanged(object? sender, EventArgs e)
         {
             int newPage = (int)pageNumberInput.Value;
             if (newPage != _currentPage && newPage >= 1 && newPage <= _totalPages)
@@ -327,11 +336,13 @@ namespace DataVisualizationApp.Forms
             }
         }
 
-        private void PageSizeComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void PageSizeComboBox_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (pageSizeComboBox.SelectedItem != null)
             {
-                _pageSize = (int)pageSizeComboBox.SelectedItem;
+                // 添加null检查以避免CS8622警告
+                _pageSize = (int)(pageSizeComboBox.SelectedItem ?? 50);
                 _currentPage = 1;
                 
                 // 更新分页信息和页码输入框的最大值
