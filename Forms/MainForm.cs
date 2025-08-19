@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
@@ -7,6 +7,9 @@ namespace DataVisualizationApp
 {
     public partial class MainForm : Form
     {
+        // 存储导入的数据
+        private DataTable _importedData;
+
         public MainForm()
         {
             InitializeComponent();
@@ -222,6 +225,9 @@ namespace DataVisualizationApp
                         var importedData = importForm.ImportedData;
                         if (importedData != null && importedData.Rows.Count > 0)
                         {
+                            // 保存导入的数据
+                            _importedData = importedData;
+
                             // 更新记录数显示
                             UpdateRecordCount(importedData.Rows.Count);
 
@@ -257,9 +263,11 @@ namespace DataVisualizationApp
             {
                 SetStatus("正在打开数据查看窗体...");
 
-                // 这里将创建并显示数据查看窗体
-                MessageBox.Show("数据查看功能将在后续步骤实现", "提示",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 创建并显示数据查看窗体
+                using (var dataViewForm = new DataVisualizationApp.Forms.DataViewForm(_importedData))
+                {
+                    dataViewForm.ShowDialog(this);
+                }
 
                 SetStatus("就绪");
             }

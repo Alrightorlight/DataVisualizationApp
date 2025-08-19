@@ -1,4 +1,4 @@
-﻿using DataVisualizationApp.Services;
+using DataVisualizationApp.Services;
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -80,8 +80,8 @@ namespace DataVisualizationApp.Forms
 
             // 设置行高
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // 文件选择
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F)); // 预览
-            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F)); // 设置
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F)); // 预览
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F)); // 设置
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // 按钮
 
             // 设置列宽
@@ -123,7 +123,7 @@ namespace DataVisualizationApp.Forms
 
             browseButton = new Button();
             browseButton.Text = "浏览...";
-            browseButton.Size = new Size(80, 23);
+            browseButton.Size = new Size(90, 28);
             browseButton.Anchor = AnchorStyles.Left;
             browseButton.Click += BrowseButton_Click;
             filePanel.Controls.Add(browseButton, 1, 0);
@@ -167,8 +167,8 @@ namespace DataVisualizationApp.Forms
             previewLayout.RowCount = 2;
             previewLayout.ColumnCount = 1;
             previewLayout.Padding = new Padding(5);
-            previewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            previewLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            previewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 90F));
+            previewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 10F));
 
             previewDataGridView = new DataGridView();
             previewDataGridView.Dock = DockStyle.Fill;
@@ -182,7 +182,8 @@ namespace DataVisualizationApp.Forms
 
             previewInfoLabel = new Label();
             previewInfoLabel.Text = "请选择Excel文件进行预览";
-            previewInfoLabel.Dock = DockStyle.Fill;
+            previewInfoLabel.Dock = DockStyle.Top;
+            previewInfoLabel.AutoSize = true;
             previewInfoLabel.ForeColor = Color.Gray;
             previewInfoLabel.Padding = new Padding(5);
             previewLayout.Controls.Add(previewInfoLabel, 0, 1);
@@ -236,6 +237,7 @@ namespace DataVisualizationApp.Forms
             detectTypesButton = new Button();
             detectTypesButton.Text = "检测列类型";
             detectTypesButton.Dock = DockStyle.Fill;
+            detectTypesButton.MinimumSize = new Size(0, 35);
             detectTypesButton.Click += DetectTypesButton_Click;
             settingsLayout.Controls.Add(detectTypesButton, 0, 2);
             settingsLayout.SetColumnSpan(detectTypesButton, 2);
