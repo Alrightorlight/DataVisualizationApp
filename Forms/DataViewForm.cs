@@ -22,11 +22,12 @@ namespace DataVisualizationApp.Forms
                 throw new ArgumentNullException(nameof(dataSource), "数据源不能为空");
 
             _dataSource = dataSource;
+            _originalDataSource = dataSource.Copy();  // 保存原始数据源
             InitializeComponent();
             this.Text = "数据查看";
             this.Size = new Size(1000, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
-    }
+        }
 
         private void InitializeComponent()
         {
@@ -46,6 +47,15 @@ namespace DataVisualizationApp.Forms
         private Panel mainPanel = null!;
         private DataGridView dataGridView = null!;
         private Label pageInfoLabel = null!;
+        private Panel filterPanel = null!;
+        private ComboBox filterColumnComboBox = null!;
+        private ComboBox filterValueComboBox = null!;
+        private Button applyFilterButton = null!;
+        private Button clearFilterButton = null!;
+        private Label filterLabel = null!;
+        private DataTable _originalDataSource = null!;  // 原始数据源，用于清除筛选
+        private string? _currentFilterColumn = null;
+        private string? _currentFilterValue = null;
 
         private void CreateMainPanel()
         {
@@ -53,6 +63,63 @@ namespace DataVisualizationApp.Forms
             mainPanel.Dock = DockStyle.Fill;
             mainPanel.Padding = new Padding(10);
             mainPanel.BackColor = Color.FromArgb(240, 240, 240);
+            mainPanel.AutoScroll = true;
+
+            // 使用TableLayoutPanel来精确控制布局
+            TableLayoutPanel layoutPanel = new TableLayoutPanel();
+            layoutPanel.Dock = DockStyle.Fill;
+            layoutPanel.ColumnCount = 1;
+            layoutPanel.RowCount = 2;
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));  // 筛选面板行
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // DataGridView行
+
+            // 创建筛选面板
+            filterPanel = new Panel();
+            filterPanel.Dock = DockStyle.Fill;
+            filterPanel.BackColor = Color.FromArgb(224, 224, 224);
+            filterPanel.Padding = new Padding(10);
+
+            // 筛选标签
+            filterLabel = new Label();
+            filterLabel.Text = "筛选条件: ";
+            filterLabel.Location = new Point(10, 15);
+            filterLabel.AutoSize = true;
+
+            // 列名下拉框
+            filterColumnComboBox = new ComboBox();
+            filterColumnComboBox.Size = new Size(200, 23);  // 增加宽度以显示长标签
+            filterColumnComboBox.DropDownWidth = 400;  // 设置下拉列表宽度
+            filterColumnComboBox.Location = new Point(filterLabel.Right + 5, 12);
+            filterColumnComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            filterColumnComboBox.SelectedIndexChanged += FilterColumnComboBox_SelectedIndexChanged;
+
+            // 值下拉框
+            filterValueComboBox = new ComboBox();
+            filterValueComboBox.Size = new Size(120, 23);
+            filterValueComboBox.Location = new Point(filterColumnComboBox.Right + 10, 12);
+            filterValueComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            // 应用筛选按钮
+            applyFilterButton = new Button();
+            applyFilterButton.Text = "应用筛选";
+            applyFilterButton.Size = new Size(90, 25);
+            applyFilterButton.Location = new Point(filterValueComboBox.Right + 10, 12);
+            applyFilterButton.Click += ApplyFilterButton_Click;
+
+            // 清除筛选按钮
+            clearFilterButton = new Button();
+            clearFilterButton.Text = "清除筛选";
+            clearFilterButton.Size = new Size(90, 25);
+            clearFilterButton.Location = new Point(applyFilterButton.Right + 10, 12);
+            clearFilterButton.Click += ClearFilterButton_Click;
+            clearFilterButton.Enabled = false;
+
+            // 添加筛选控件到筛选面板
+            filterPanel.Controls.Add(filterLabel);
+            filterPanel.Controls.Add(filterColumnComboBox);
+            filterPanel.Controls.Add(filterValueComboBox);
+            filterPanel.Controls.Add(applyFilterButton);
+            filterPanel.Controls.Add(clearFilterButton);
 
             // 创建DataGridView
             dataGridView = new DataGridView();
@@ -70,8 +137,13 @@ namespace DataVisualizationApp.Forms
             dataGridView.ColumnHeaderMouseClick += DataGridView_ColumnHeaderMouseClick;
             dataGridView.Sorted += DataGridView_Sorted;
 
-            // 添加到面板
-            mainPanel.Controls.Add(dataGridView);
+            // 将控件添加到TableLayoutPanel
+            layoutPanel.Controls.Add(filterPanel, 0, 0);
+            layoutPanel.Controls.Add(dataGridView, 0, 1);
+
+            // 添加TableLayoutPanel到主面板
+            mainPanel.Controls.Add(layoutPanel);
+
             this.Controls.Add(mainPanel);
         }
         #endregion
@@ -372,6 +444,93 @@ namespace DataVisualizationApp.Forms
         {
             base.OnLoad(e);
             LoadData();
+            InitializeFilterControls();
+        }
+
+        private void InitializeFilterControls()
+        {
+            // 填充列名下拉框
+            filterColumnComboBox.Items.Clear();
+            if (_dataSource != null && _dataSource.Columns.Count > 0)
+            {
+                foreach (DataColumn column in _dataSource.Columns)
+                {
+                    filterColumnComboBox.Items.Add(column.ColumnName);
+                }
+                if (filterColumnComboBox.Items.Count > 0)
+                {
+                    filterColumnComboBox.SelectedIndex = 0;
+                }
+            }
+        }
+
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void FilterColumnComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (filterColumnComboBox.SelectedItem != null)
+            {
+                string selectedColumn = filterColumnComboBox.SelectedItem.ToString()!;
+                _currentFilterColumn = selectedColumn;
+
+                // 填充值下拉框（获取该列的唯一值）
+                filterValueComboBox.Items.Clear();
+                if (_originalDataSource != null && _originalDataSource.Rows.Count > 0)
+                {
+                    DataView dv = new DataView(_originalDataSource);
+                    DataTable distinctValues = dv.ToTable(true, selectedColumn);
+                    foreach (DataRow row in distinctValues.Rows)
+                    {
+                        if (row[selectedColumn] != DBNull.Value)
+                        {
+                            // 使用null合并操作符确保不会传入null值
+                            filterValueComboBox.Items.Add(row[selectedColumn].ToString() ?? string.Empty);
+                        }
+                    }
+                    if (filterValueComboBox.Items.Count > 0)
+                    {
+                        filterValueComboBox.SelectedIndex = 0;
+                    }
+                }
+            }
+        }
+
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void ApplyFilterButton_Click(object? sender, EventArgs e)
+        {
+            if (filterColumnComboBox.SelectedItem != null && filterValueComboBox.SelectedItem != null)
+            {
+                _currentFilterColumn = filterColumnComboBox.SelectedItem.ToString();
+                _currentFilterValue = filterValueComboBox.SelectedItem.ToString();
+
+                // 应用筛选
+                DataView dv = new DataView(_originalDataSource);
+                // 使用!运算符表示_currentFilterColumn和_currentFilterValue不为null
+                dv.RowFilter = $"[{_currentFilterColumn!}] = '{_currentFilterValue!}'";
+                _dataSource = dv.ToTable();
+
+                // 重置分页
+                _currentPage = 1;
+                LoadData();
+
+                // 启用清除筛选按钮
+                clearFilterButton.Enabled = true;
+            }
+        }
+
+        // 将sender参数改为可空类型以匹配委托的可空性要求
+        private void ClearFilterButton_Click(object? sender, EventArgs e)
+        {
+            // 清除筛选
+            _dataSource = _originalDataSource.Copy();
+            _currentFilterColumn = null;
+            _currentFilterValue = null;
+
+            // 重置分页
+            _currentPage = 1;
+            LoadData();
+
+            // 禁用清除筛选按钮
+            clearFilterButton.Enabled = false;
         }
         #endregion
     }
