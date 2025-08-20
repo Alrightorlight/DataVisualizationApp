@@ -34,6 +34,19 @@ namespace DataVisualizationApp.Services
                 var fileInfo = new FileInfo(filePath);
                 var excelFileInfo = _excelService.GetExcelInfo(filePath);
 
+                // 检查文件是否已经导入（通过文件路径、大小和最后修改时间）
+                var existingFile = _excelFileRepository.GetByFilePathAndSizeAndLastModified(
+                    filePath,
+                    fileInfo.Length,
+                    fileInfo.LastWriteTime
+                );
+
+                if (existingFile != null)
+                {
+                    // 文件已存在，返回已存在的文件ID
+                    return existingFile.Id;
+                }
+
                 // 创建ExcelFile实体
                 var excelFile = new ExcelFile
                 {

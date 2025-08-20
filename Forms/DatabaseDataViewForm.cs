@@ -78,6 +78,7 @@ namespace DataVisualizationApp.Forms
         private ComboBox fileComboBox = null!;
         private Label fileLabel = null!;
         private Button refreshFilesButton = null!;
+        private Button deleteFileButton = null!;
 
         private void CreateFileSelectionPanel()
         {
@@ -94,8 +95,8 @@ namespace DataVisualizationApp.Forms
 
             // 文件下拉框
             fileComboBox = new ComboBox();
-            fileComboBox.Size = new Size(300, 23);
-            fileComboBox.Location = new Point(fileLabel.Right + 5, 12);
+            fileComboBox.Size = new Size(500, 23);  // 增加宽度以显示更长的文件名
+            fileComboBox.Location = new Point(fileLabel.Right + 15, 12);  // 增加与标签的距离，确保显示完整
             fileComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             fileComboBox.SelectedIndexChanged += FileComboBox_SelectedIndexChanged;
 
@@ -106,10 +107,18 @@ namespace DataVisualizationApp.Forms
             refreshFilesButton.Location = new Point(fileComboBox.Right + 10, 12);
             refreshFilesButton.Click += RefreshFilesButton_Click;
 
+            // 删除文件按钮
+            deleteFileButton = new Button();
+            deleteFileButton.Text = "删除文件";            
+            deleteFileButton.Size = new Size(80, 25);
+            deleteFileButton.Location = new Point(refreshFilesButton.Right + 10, 12);
+            deleteFileButton.Click += DeleteFileButton_Click;
+
             // 添加控件到面板
             fileSelectionPanel.Controls.Add(fileLabel);
             fileSelectionPanel.Controls.Add(fileComboBox);
             fileSelectionPanel.Controls.Add(refreshFilesButton);
+            fileSelectionPanel.Controls.Add(deleteFileButton);
 
             this.Controls.Add(fileSelectionPanel);
         }
@@ -151,6 +160,40 @@ namespace DataVisualizationApp.Forms
             LoadExcelFiles();
         }
 
+        private void DeleteFileButton_Click(object? sender, EventArgs e)
+        {
+            if (_selectedExcelFile == null)
+            {
+                MessageBox.Show("请先选择要删除的Excel文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                DialogResult result = MessageBox.Show($"确定要删除文件 '{_selectedExcelFile.FileName}' 及其所有关联的工作表数据吗？\n\n此操作不可撤销！", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    // 删除Excel文件及其关联数据
+                    _excelLibraryService.DeleteExcelFile(_selectedExcelFile.Id);
+
+                    // 刷新文件列表
+                    LoadExcelFiles();
+
+                    // 清空当前选择
+                    _selectedExcelFile = null;
+                    _selectedSheet = null;
+                    sheetComboBox.Items.Clear();
+                    dataGridView.DataSource = null;
+
+                    MessageBox.Show("文件删除成功", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+             {
+                MessageBox.Show($"删除文件失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+             }
+        }
+
         // 用于在ComboBox中显示文件信息的包装类
         private class FileComboBoxItem
         {
@@ -172,6 +215,9 @@ namespace DataVisualizationApp.Forms
         private Panel sheetSelectionPanel = null!;
         private ComboBox sheetComboBox = null!;
         private Label sheetLabel = null!;
+        private CheckBox hasHeadersCheckBox = null!;
+        private Label headerRowsLabel = null!;
+        private NumericUpDown headerRowsNumericUpDown = null!;
 
         private void CreateSheetSelectionPanel()
         {
@@ -193,9 +239,34 @@ namespace DataVisualizationApp.Forms
             sheetComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             sheetComboBox.SelectedIndexChanged += SheetComboBox_SelectedIndexChanged;
 
+            // 包含表头复选框
+            hasHeadersCheckBox = new CheckBox();
+            hasHeadersCheckBox.Text = "包含表头";
+            hasHeadersCheckBox.Checked = true;
+            hasHeadersCheckBox.Location = new Point(sheetComboBox.Right + 20, 15);
+            hasHeadersCheckBox.CheckedChanged += HasHeadersCheckBox_CheckedChanged;
+
+            // 表头行数标签
+            headerRowsLabel = new Label();
+            headerRowsLabel.Text = "表头行数: ";
+            headerRowsLabel.Location = new Point(hasHeadersCheckBox.Right + 10, 15);
+            headerRowsLabel.AutoSize = true;
+
+            // 表头行数数字选择器
+            headerRowsNumericUpDown = new NumericUpDown();
+            headerRowsNumericUpDown.Minimum = 1;
+            headerRowsNumericUpDown.Maximum = 10;
+            headerRowsNumericUpDown.Value = 1;
+            headerRowsNumericUpDown.Size = new Size(60, 23);
+            headerRowsNumericUpDown.Location = new Point(headerRowsLabel.Right + 5, 12);
+            headerRowsNumericUpDown.ValueChanged += HeaderRowsNumericUpDown_ValueChanged;
+
             // 添加控件到面板
             sheetSelectionPanel.Controls.Add(sheetLabel);
             sheetSelectionPanel.Controls.Add(sheetComboBox);
+            sheetSelectionPanel.Controls.Add(hasHeadersCheckBox);
+            sheetSelectionPanel.Controls.Add(headerRowsLabel);
+            sheetSelectionPanel.Controls.Add(headerRowsNumericUpDown);
 
             this.Controls.Add(sheetSelectionPanel);
         }
@@ -295,6 +366,13 @@ namespace DataVisualizationApp.Forms
                 // 读取工作表数据
                 DataTable data = _excelLibraryService.ReadExcelFileData(_selectedExcelFile.Id, _selectedSheet.SheetName);
 
+                // 处理表头
+                if (hasHeadersCheckBox.Checked)
+                {
+                    int headerRows = (int)headerRowsNumericUpDown.Value;
+                    ProcessDataTableHeaders(data, headerRows);
+                }
+
                 // 更新总记录数
                 _totalRecords = data.Rows.Count;
 
@@ -321,6 +399,24 @@ namespace DataVisualizationApp.Forms
             catch (Exception ex)
             {
                 MessageBox.Show($"加载数据失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void HasHeadersCheckBox_CheckedChanged(object? sender, EventArgs e)
+        {
+            headerRowsLabel.Enabled = hasHeadersCheckBox.Checked;
+            headerRowsNumericUpDown.Enabled = hasHeadersCheckBox.Checked;
+            if (_selectedSheet != null)
+            {
+                LoadData();
+            }
+        }
+
+        private void HeaderRowsNumericUpDown_ValueChanged(object? sender, EventArgs e)
+        {
+            if (_selectedSheet != null)
+            {
+                LoadData();
             }
         }
         #endregion
@@ -490,6 +586,86 @@ namespace DataVisualizationApp.Forms
                 _currentPage = 1;
                 LoadData();
             }
+        }
+        #endregion
+
+        #region 表头处理
+        /// <summary>
+        /// 处理DataTable的多行表头，合并为单行表头
+        /// </summary>
+        /// <param name="dataTable">要处理的DataTable</param>
+        /// <param name="headerRowCount">表头行数</param>
+        private void ProcessDataTableHeaders(DataTable dataTable, int headerRowCount)
+        {
+            // 调整表头行数：用户选择的行数减1，以匹配用户预期
+            // 例如：用户选择1行表头，实际处理1行而不是2行
+            int adjustedHeaderRowCount = Math.Max(0, headerRowCount - 1);
+
+            if (dataTable == null || dataTable.Rows.Count < adjustedHeaderRowCount)
+                return;
+
+            // 存储新的列名
+            var newColumnNames = new List<string>();
+            int columnCount = dataTable.Columns.Count;
+
+            // 处理每一列的表头
+            for (int col = 0; col < columnCount; col++)
+            {
+                var headerParts = new List<string>();
+
+                // 收集该列的所有表头行值
+                for (int row = 0; row < adjustedHeaderRowCount; row++)
+                {
+                    var cellValue = dataTable.Rows[row][col];
+                    if (cellValue != DBNull.Value)
+                    {
+                        string? valueStr = cellValue.ToString()?.Trim();
+                        if (!string.IsNullOrWhiteSpace(valueStr))
+                        {
+                            headerParts.Add(valueStr);
+                        }
+                    }
+                }
+
+                // 生成列名
+                string headerName;
+                if (headerParts.Any())
+                {
+                    // 合并多行表头，使用非重复的部分
+                    headerName = string.Join("_", headerParts.Distinct());
+                }
+                else
+                {
+                    headerName = dataTable.Columns[col].ColumnName;
+                }
+
+                // 确保列名唯一
+                string uniqueHeaderName = headerName;
+                int counter = 1;
+                while (newColumnNames.Contains(uniqueHeaderName))
+                {
+                    uniqueHeaderName = $"{headerName}_{counter}";
+                    counter++;
+                }
+                newColumnNames.Add(uniqueHeaderName);
+            }
+
+            // 更新列名
+            for (int col = 0; col < columnCount; col++)
+            {
+                dataTable.Columns[col].ColumnName = newColumnNames[col];
+            }
+
+            // 删除表头行
+            if (adjustedHeaderRowCount > 0 && dataTable.Rows.Count >= adjustedHeaderRowCount)
+            {
+                DataRow[] rowsToDelete = dataTable.Rows.Cast<DataRow>().Take(adjustedHeaderRowCount).ToArray();
+                foreach (DataRow row in rowsToDelete)
+                {
+                    row.Delete();
+                }
+            }
+            dataTable.AcceptChanges();
         }
         #endregion
     }

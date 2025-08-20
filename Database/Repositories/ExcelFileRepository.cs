@@ -114,5 +114,17 @@ namespace DataVisualizationApp.Database.Repositories
                     new { LastAccessed = DateTime.Now, Id = id });
             }
         }
+
+        // 检查文件是否已存在
+        public ExcelFile? GetByFilePathAndSizeAndLastModified(string filePath, long fileSize, DateTime lastModified)
+        {
+            using (var connection = _dbHelper.GetConnection())
+            {
+                connection.Open();
+                return connection.QueryFirstOrDefault<ExcelFile>(
+                    "SELECT * FROM ExcelFiles WHERE FilePath = @FilePath AND FileSize = @FileSize AND LastModified = @LastModified",
+                    new { FilePath = filePath, FileSize = fileSize, LastModified = lastModified });
+            }
+        }
     }
 }
