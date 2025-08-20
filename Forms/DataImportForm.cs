@@ -1,7 +1,6 @@
 using DataVisualizationApp.Services;
 using System;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,6 +11,7 @@ namespace DataVisualizationApp.Forms
     public partial class DataImportForm : Form
     {
         private ExcelService excelService;
+        private ExcelLibraryService excelLibraryService;
         private DataTable previewData = null!;
         private string selectedFilePath = null!;
 
@@ -19,6 +19,7 @@ namespace DataVisualizationApp.Forms
         {
             InitializeComponent();
             excelService = new ExcelService();
+            excelLibraryService = new ExcelLibraryService();
             selectedFilePath = string.Empty;
             this.Text = "Excel数据导入";
             this.Size = new Size(1000, 700);
@@ -457,12 +458,24 @@ namespace DataVisualizationApp.Forms
 
                 ((IProgress<int>)progress).Report(60);
 
-                // 这里将添加数据库存储逻辑
+                // 保存到数据库
                 await System.Threading.Tasks.Task.Run(() =>
                 {
-                    // TODO: 保存到数据库
-                    System.Threading.Thread.Sleep(1000); // 模拟保存过程
-                    ((IProgress<int>)progress).Report(100);
+                    try
+                    {
+                        // 调用ExcelLibraryService导入Excel文件到数据库
+                        int fileId = excelLibraryService.ImportExcelFile(
+                            selectedFilePath,
+                            "Imported Data",  // 类别
+                            "Imported on " + DateTime.Now.ToString()  // 描述
+                        );
+
+                        ((IProgress<int>)progress).Report(100);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("保存到数据库失败: " + ex.Message, ex);
+                    }
                 });
 
                 MessageBox.Show($"数据导入成功！\n共导入 {fullData.Rows.Count} 行数据，{fullData.Columns.Count} 列",

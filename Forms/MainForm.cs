@@ -2,6 +2,9 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using DataVisualizationApp.Services;
+using DataVisualizationApp.Database.Repositories;
+using DataVisualizationApp.Database.Entities;
 
 namespace DataVisualizationApp
 {
@@ -9,9 +12,14 @@ namespace DataVisualizationApp
     {
         // 存储导入的数据
         private DataTable _importedData = new DataTable();
+        // Excel库服务
+        private ExcelLibraryService _excelLibraryService;
 
         public MainForm()
         {
+            // 初始化Excel库服务
+            _excelLibraryService = new ExcelLibraryService();
+
             InitializeComponent();
             this.Text = "数据可视化分析系统";
             this.Size = new Size(1000, 700);
@@ -76,12 +84,15 @@ private ToolStripMenuItem aboutMenuItem = null!;
 
             // 数据菜单
             dataMenuItem = new ToolStripMenuItem("数据(&D)");
-            viewDataMenuItem = new ToolStripMenuItem("查看数据(&V)", null, ViewData_Click);
+            viewDataMenuItem = new ToolStripMenuItem("查看当前数据(&V)", null, ViewData_Click);
             viewDataMenuItem.ShortcutKeys = Keys.Control | Keys.D;
             visualizeMenuItem = new ToolStripMenuItem("数据可视化(&G)", null, Visualize_Click);
             visualizeMenuItem.ShortcutKeys = Keys.Control | Keys.G;
+            var viewDatabaseDataMenuItem = new ToolStripMenuItem("查看数据库数据(&B)", null, ViewDatabaseData_Click);
+            viewDatabaseDataMenuItem.ShortcutKeys = Keys.Control | Keys.B;
 
             dataMenuItem.DropDownItems.Add(viewDataMenuItem);
+            dataMenuItem.DropDownItems.Add(viewDatabaseDataMenuItem);
             dataMenuItem.DropDownItems.Add(visualizeMenuItem);
 
             // 帮助菜单
@@ -130,9 +141,16 @@ private ToolStripButton visualizeButton = null!;
             visualizeButton.Click += Visualize_Click;
             visualizeButton.Enabled = false; // 初始状态禁用
 
+            // 查看数据库数据按钮
+            var viewDatabaseButton = new ToolStripButton("查看数据库数据");
+            viewDatabaseButton.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+            viewDatabaseButton.Click += ViewDatabaseData_Click;
+            viewDatabaseButton.Enabled = true; // 始终启用，因为可以查看历史数据
+
             toolStrip.Items.Add(importButton);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(viewDataButton);
+            toolStrip.Items.Add(viewDatabaseButton);
             toolStrip.Items.Add(visualizeButton);
 
             this.Controls.Add(toolStrip);
@@ -340,6 +358,29 @@ private void Exit_Click(object? sender, EventArgs e)
             }
         }
         #endregion
+
+        // 查看数据库数据
+        private void ViewDatabaseData_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                SetStatus("正在打开数据库数据查看窗体...");
+
+                // 创建并显示数据库数据查看窗体
+                using (var dbDataViewForm = new DataVisualizationApp.Forms.DatabaseDataViewForm(_excelLibraryService))
+                {
+                    dbDataViewForm.ShowDialog(this);
+                }
+
+                SetStatus("就绪");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"打开数据库数据查看失败：{ex.Message}", "错误",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetStatus("操作失败");
+            }
+        }
 
         #region 辅助方法
         ///
