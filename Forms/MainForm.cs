@@ -327,9 +327,11 @@ private void Visualize_Click(object? sender, EventArgs e)
             {
                 SetStatus("正在打开可视化窗体...");
 
-                // 这里将创建并显示可视化窗体
-                MessageBox.Show("数据可视化功能将在后续步骤实现", "提示",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 创建并显示可视化窗体
+                using (var visualizationForm = new DataVisualizationApp.Forms.VisualizationForm(_importedData))
+                {
+                    visualizationForm.ShowDialog(this);
+                }
 
                 SetStatus("就绪");
             }
